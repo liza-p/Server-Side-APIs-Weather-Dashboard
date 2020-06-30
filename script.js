@@ -27,8 +27,38 @@ function showForecast(res) {
         $("#forecast").append(cardDiv);
 
     }
+}
 
-    
+function showUv(lat,lon) {
+    var uvIndex = `http://api.openweathermap.org/data/2.5/uvi?appid=5dcc67fe4c268492bfaa960cb32d8382&lat=${lat}&lon=${lon}`
+    $.ajax({
+       url: uvIndex,
+       method: "GET"
+
+    }).then(function(uvResponse){
+        // console.log(uvResponse);
+
+        var uvIndexValue = uvResponse.value;
+
+        var uvDiv = $('<div>');
+        var uvSpan = $('<span>');
+        uvSpan.addClass("p-2");
+        uvSpan.text(uvIndexValue);
+        uvDiv.text("UV Index: ").append(uvSpan);
+        $(".card-body").append(uvDiv);
+
+        if(uvIndexValue >= 0 && uvIndexValue <= 2) {
+            uvSpan.addClass("bg-success text-white");
+        } else if(uvIndexValue >= 3 && uvIndexValue <= 5) {
+            uvSpan.addClass("bg-warning text-dark");
+        } else if(uvIndexValue >= 6 && uvIndexValue <= 7){
+            uvSpan.addClass("bg-warning text-dark");
+        }else{
+            uvSpan.addClass("bg-danger text-white");
+        }
+
+    });
+
 }
 
 
@@ -84,34 +114,9 @@ $("#search").on("click",function(event){
 
         var lat = response.city.coord.lat;
         var lon = response.city.coord.lon;
-        var uvIndex = `http://api.openweathermap.org/data/2.5/uvi?appid=5dcc67fe4c268492bfaa960cb32d8382&lat=${lat}&lon=${lon}`
-        $.ajax({
-           url: uvIndex,
-           method: "GET"
+       
+        showUv(lat,lon);
 
-        }).then(function(uvResponse){
-            console.log(uvResponse);
-
-            var uvIndexValue = uvResponse.value;
-
-            var uvDiv = $('<div>');
-            var uvSpan = $('<span>');
-            uvSpan.addClass("p-2")
-            uvSpan.text(uvIndexValue);
-            uvDiv.text("UV Index: ").append(uvSpan);
-            $(".card-body").append(uvDiv);
-
-            if(uvIndexValue >= 0 && uvIndexValue <= 2) {
-                uvSpan.addClass("bg-success text-white");
-            } else if(uvIndexValue >= 3 && uvIndexValue <= 5) {
-                uvSpan.addClass("bg-warning text-dark");
-            } else if(uvIndexValue >= 6 && uvIndexValue <= 7){
-                uvSpan.addClass("bg-warning text-dark");
-            }else{
-                uvSpan.addClass("bg-danger text-white");
-            }
-
-        });
         
     });
     
