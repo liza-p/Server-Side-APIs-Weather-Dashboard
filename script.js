@@ -1,4 +1,4 @@
-function showForecast(res) {
+function show5Forecast(res) {
     $("#forecast").html("");
     for(let i = 0; i<40; i+=8) {
 
@@ -27,21 +27,14 @@ function showForecast(res) {
         $("#forecast").append(cardDiv);
 
     }
-
-    
 }
 
+function showForecast(cityName){
 
-$("#search").on("click",function(event){
-    event.preventDefault();
+    var queryURL = `https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&appid=5dcc67fe4c268492bfaa960cb32d8382&units=imperial`;
     
-    var cityName = $("#city-input").val().trim();
-    var queryURL = `https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&appid=5dcc67fe4c268492bfaa960cb32d8382&units=imperial`
-  
-   
+    showHistory();
     
-
-   
 
     $.ajax({
         url: queryURL,
@@ -79,41 +72,78 @@ $("#search").on("click",function(event){
         $(".card-body").append(windDiv);
         windDiv.text("Wind Speed: " + windSpeed + " MPH");
 
-        showForecast(response);
+        show5Forecast(response);
         
 
         var lat = response.city.coord.lat;
         var lon = response.city.coord.lon;
-        var uvIndex = `http://api.openweathermap.org/data/2.5/uvi?appid=5dcc67fe4c268492bfaa960cb32d8382&lat=${lat}&lon=${lon}`
-        $.ajax({
-           url: uvIndex,
-           method: "GET"
+    
+        showUv(lat,lon);
 
-        }).then(function(uvResponse){
-            console.log(uvResponse);
 
-            var uvIndexValue = uvResponse.value;
+    });
+}
 
-            var uvDiv = $('<div>');
-            var uvSpan = $('<span>');
-            uvSpan.addClass("p-2")
-            uvSpan.text(uvIndexValue);
-            uvDiv.text("UV Index: ").append(uvSpan);
-            $(".card-body").append(uvDiv);
+function showUv(lat,lon) {
+    var uvIndex = `http://api.openweathermap.org/data/2.5/uvi?appid=5dcc67fe4c268492bfaa960cb32d8382&lat=${lat}&lon=${lon}`
+    $.ajax({
+       url: uvIndex,
+       method: "GET"
 
-            if(uvIndexValue >= 0 && uvIndexValue <= 2) {
-                uvSpan.addClass("bg-success text-white");
-            } else if(uvIndexValue >= 3 && uvIndexValue <= 5) {
-                uvSpan.addClass("bg-warning text-dark");
-            } else if(uvIndexValue >= 6 && uvIndexValue <= 7){
-                uvSpan.addClass("bg-warning text-dark");
-            }else{
-                uvSpan.addClass("bg-danger text-white");
-            }
+    }).then(function(uvResponse){
+        // console.log(uvResponse);
 
+        var uvIndexValue = uvResponse.value;
+
+        var uvDiv = $('<div>');
+        var uvSpan = $('<span>');
+        uvSpan.addClass("p-2");
+        uvSpan.text(uvIndexValue);
+        uvDiv.text("UV Index: ").append(uvSpan);
+        $(".card-body").append(uvDiv);
+
+        if(uvIndexValue >= 0 && uvIndexValue <= 2) {
+            uvSpan.addClass("bg-success text-white");
+        } else if(uvIndexValue >= 3 && uvIndexValue <= 5) {
+            uvSpan.addClass("bg-warning text-dark");
+        } else if(uvIndexValue >= 6 && uvIndexValue <= 7){
+            uvSpan.addClass("bg-warning text-dark");
+        }else{
+            uvSpan.addClass("bg-danger text-white");
+        }
+
+    });
+
+}
+
+function showHistory(){
+    $('#history').html("");
+    cities.forEach(function(city){
+        var btn = $('<button>');
+        btn.addClass("list-group-item list-group-item-action");
+        btn.text(city);
+        btn.on("click", function(){
+            showForecast(city);
         });
-        
+        $('#history').append(btn);
     });
     
+}
+
+var cities = JSON.parse(localStorage.getItem('cities'));
+if (cities === null) {
+    cities = [];
+}
+showHistory();
+
+$("#search").on("click",function(event){
+    event.preventDefault();
+    
+    var cityName = $("#city-input").val().trim();
+
+    cities.push(cityName);
+    localStorage.setItem("cities",JSON.stringify(cities));
+    showForecast(cityName);
 });
+
       
